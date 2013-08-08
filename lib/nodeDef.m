@@ -1,7 +1,8 @@
+function rootNode = nodeDef()
 % nodedef.m
-% 
+%
 % Defines the hierarchy of nodes for the classifier, the cpc classes
-% that are contained in them, and should act as the single reference point to 
+% that are contained in them, and should act as the single reference point to
 % minimise duplication errors.
 %
 % Author:   Navid Nourani @ ACFR
@@ -353,14 +354,29 @@ rootNode.children = {
     node_BIOTA'
     };
 
-clear node_PHYSICAL node_PHYSICAL_SOFT node_PHYSICAL_HARD node_BIOTA 
+clear node_PHYSICAL node_PHYSICAL_SOFT node_PHYSICAL_HARD node_BIOTA
 clear node_BIOTA_ALGAE node_BIOTA_ALGAE_CANOPY node_BIOTA_ALGAE_CANOPY_ECK
 clear node_BIOTA_ALGAE_CANOPY_OTHER node_BIOTA_ALGAE_CRUSTOSE
 clear node_BIOTA_ALGAE_CRUSTOSE_ECOR node_BIOTA_ALGAE_CRUSTOSE_SOND
 clear node_BIOTA_ALGAE_ERECTBRANCHING node_BIOTA_ALGAE_ERECTBRANCHING_BROWN
-clear node_BIOTA_ALGAE_ERECTBRANCHING_RED node_BIOTA_BRYOZOA 
+clear node_BIOTA_ALGAE_ERECTBRANCHING_RED node_BIOTA_BRYOZOA
 clear node_BIOTA_CNIDARIA node_BIOTA_ECHINODERMS node_BIOTA_OTHER
 clear node_BIOTA_SPONGES node
 
 % Calculate tree level and node numbers
+rootNode.level = 0;
+rootNode.num = 0;
+rootNode = setChildLevelAndNumber( rootNode );
 
+    function [node, num] = setChildLevelAndNumber( node )
+        %fprintf( '%d: %s @ %d\n', node.num, node.name, node.level );
+        num = node.num;
+        for j = 1:length(node.children)
+            node.children{j}.level = node.level+1;
+            node.children{j}.num = num+1;
+            [node.children{j}, num] = setChildLevelAndNumber(node.children{j});
+            % updated the node number so it follows after the last child in
+            % the previous branch
+        end
+    end
+end

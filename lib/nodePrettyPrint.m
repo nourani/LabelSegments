@@ -1,9 +1,9 @@
 function nodePrettyPrint(node, depth)
-% nodePrettyPrint( node, depth )
+% nodePrettyPrint( tree, depth )
 %
 % Print the tree in text form
 % Arguments:
-%   node    -   The tree
+%   tree    -   The tree
 %   depth   -   The tabbing depth (optional)
 %
 % Author:   Navid Nourani-Vatani @ ACFR
@@ -17,13 +17,13 @@ end
 for i = 0:depth
     fprintf('\t');
 end
-fprintf( '%s\n', node.name );
+fprintf( '%d: %s (%d)\n', node.level, node.name, node.num );
 
 % cpc labels
 for i = 0:depth
     fprintf('\t');
 end
-fprintf( ' CPC: <' );
+fprintf( '   CPC: <' );
 for i =  1:size(node.labels,1)
     fprintf( '%s', node.labels{i} )
     if i < size(node.labels,1)

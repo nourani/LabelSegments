@@ -848,7 +848,6 @@ bndry_img = boundary_overlay(im, data.image.labels);
                 data.image.labels = labels;
                 data.image.n_objects = get_num_objects(labels);
                 set(data.ui.obj_total, 'String', num2str(data.image.n_objects));
-                fprintf( 'n_objects=%d\n', data.image.n_objects );
                 disp_update(data);
             else
                 set(data.ui.tool_pencil, 'Value', false);
@@ -932,8 +931,8 @@ bndry_img = boundary_overlay(im, data.image.labels);
                 if (button == 1)
                     % erase selected component
                     L = bwlabel(data.image.seeds > 0);
-                    inds = find(L == L(x,y));
-                    data.image.seeds(inds) = 0;
+                    %inds = find(L == L(x,y));
+                    data.image.seeds(L == L(x,y)) = 0;
                     % update display
                     disp_update_ui(data.image.ucm, data.image.seeds, data.image.im, data.figures.fh);
                 else
@@ -957,12 +956,12 @@ bndry_img = boundary_overlay(im, data.image.labels);
 %% zoom button toggled
     function ui_view_zoom(h, event_data)
         val = get(h,'Value');
-        if (val), zoom('on'); else zoom('off'); end
+        if (val), figure(fh); zoom('on'); else zoom('off'); end
     end
 
 %% zoom reset pushed
     function ui_view_reset(h, event_data)
-        zoom('out');
+        figure(fh); zoom('out');
     end
 
 %% image revert
@@ -970,7 +969,7 @@ bndry_img = boundary_overlay(im, data.image.labels);
         % revert to previous image data
         data.image = data.image_store;
         % reset state
-        data.state.obj_id = 0;
+        %data.state.obj_id = 0;
         %data.state.cmap = cmap_n(data.image.n_objects);
         % refresh display
         disp_update(data);

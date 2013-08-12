@@ -5,23 +5,22 @@ addpath(fullfile(pwd,'lib'));
 clear all;
 clc;
 
+% User choices
 imgDir = '/Volumes/data/Hierarchical/images';
 ucmDir = '/Volumes/data/Hierarchical/ucm';
-outDir = '';
-
-
+outDir = '/Volumes/data/Hierarchical/segments';
 
 useCPCLabels = true;
+keypointData = '/Volumes/data/Hierarchical/keypointdata.csv';
 
-
-
+%%
 % Get image names
 dirCont = dir( [imgDir, '/*LC16.png'] );
 fprintf( 'Starting segment labeling with %d images\n', length(dirCont) );
 
 % load cpc labels
 if useCPCLabels == true
-    fid = fopen( '~/Dropbox/Datasets/ACFR_TASSIE2008_DATASET/keypointdata.csv' );
+    fid = fopen( keypointData );
     CPC = textscan( fid, ...
         '%*s %*s %s %d %f %f %s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s',  ...
         'Delimiter', ',', ...
@@ -97,7 +96,7 @@ while imgInd >= 1 && imgInd < size(dirCont,1)
                     %labels{end+1} = label;
                     %labelsNum = [labelsNum; nodeAt( rootNode, label )];
                     node = nodeAt( tree, label );
-                    seeds( uint16(y*sy), uint16(x*sx) ) = node.num;
+                    seeds(ceil(y*sy), ceil(x*sx)) = node.num;
             end
         end
     end
@@ -111,7 +110,23 @@ while imgInd >= 1 && imgInd < size(dirCont,1)
     % discard changes and exit
     if strcmp(action, 'exit'), break; end
     % save
-    save( [outDir, '/', imgName, '_seeds.mat'], seeds_ret );
+    if true == true
+        outFile = [outDir, '/', imgName, '_seeds.mat'];
+        if exist( outFile, 'file' )
+            uisave('seeds_ret', outFile);
+        else
+            save( outFile, 'seeds_ret' );
+        end
+        outFile = [outDir, '/', imgName, '_seg.mat'];
+        if exist( outFile, 'file' )
+            uisave('seg', outFile)
+        else
+            save( outFile, 'seg' );
+        end
+        fprintf( 'Saving labels for image # %d\n', imgInd );
+    else
+        warning( 'LabelSegments:Saving','File save skipped!' );
+    end
     % next action
     if strcmpi(action, 'next')
         imgInd = imgInd+1;

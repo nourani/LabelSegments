@@ -6,10 +6,11 @@ clear all;
 clc;
 
 % User choices
+% /Volumes/data/Hierarchical
 imgDir  = '/media/water/misc/personal_folders/navid/Hierarchical/images';
-ucmDir  = '/media/water/misc/personal_folders/navid/ucm';
-outDir  = '/media/water/misc/personal_folders/navid/segments';
-cpcFile = '/media/water/misc/personal_folders/navid/keypointdata.csv';
+ucmDir  = '/media/water/misc/personal_folders/navid/Hierarchical/ucm';
+outDir  = '/media/water/misc/personal_folders/navid/Hierarchical/segments';
+cpcFile = '/media/water/misc/personal_folders/navid/Hierarchical/keypointdata.csv';
 useCPCLabels = true;
 
 %%

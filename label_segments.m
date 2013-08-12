@@ -6,10 +6,10 @@ clear all;
 clc;
 
 % User choices
-imgDir  = '/Volumes/data/Hierarchical/images';
-ucmDir  = '/Volumes/data/Hierarchical/ucm';
-outDir  = '/Volumes/data/Hierarchical/segments';
-cpcFile = '/Volumes/data/Hierarchical/keypointdata.csv';
+imgDir  = '/media/water/misc/personal_folders/navid/Hierarchical/images';
+ucmDir  = '/media/water/misc/personal_folders/navid/ucm';
+outDir  = '/media/water/misc/personal_folders/navid/segments';
+cpcFile = '/media/water/misc/personal_folders/navid/keypointdata.csv';
 useCPCLabels = true;
 
 %%

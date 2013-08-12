@@ -6,12 +6,11 @@ clear all;
 clc;
 
 % User choices
-imgDir = '/Volumes/data/Hierarchical/images';
-ucmDir = '/Volumes/data/Hierarchical/ucm';
-outDir = '/Volumes/data/Hierarchical/segments';
-
+imgDir  = '/Volumes/data/Hierarchical/images';
+ucmDir  = '/Volumes/data/Hierarchical/ucm';
+outDir  = '/Volumes/data/Hierarchical/segments';
+cpcFile = '/Volumes/data/Hierarchical/keypointdata.csv';
 useCPCLabels = true;
-keypointData = '/Volumes/data/Hierarchical/keypointdata.csv';
 
 %%
 % Get image names
@@ -20,7 +19,7 @@ fprintf( 'Starting segment labeling with %d images\n', length(dirCont) );
 
 % load cpc labels
 if useCPCLabels == true
-    fid = fopen( keypointData );
+    fid = fopen( cpcFile );
     CPC = textscan( fid, ...
         '%*s %*s %s %d %f %f %s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s',  ...
         'Delimiter', ',', ...

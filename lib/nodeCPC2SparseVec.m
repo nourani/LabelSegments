@@ -10,7 +10,7 @@ function sVec = nodeCPC2SparseVec( node, label )
 % Author:   Navid Nourani-Vatani @ ACFR
 % Version:  1.0 2013-08-01
 
-verbose = true;
+verbose = false;
 if verbose == true
     fprintf( 'Looking for %s\n', label );
 end
@@ -21,20 +21,24 @@ numNodes = nodeGetNumNodes( node );
 % create sparce vec. NOTE: rootNode is not counted here
 sVec = zeros(numNodes-1, 1);
 
-% get the node number for the label
-[nodeNum, nodeCurr, nodePar] = nodeAt( node, label );
-sVec(nodeNum) = true;
-if verbose == true
-    fprintf( '%s is @ %d, Parent = %s\n', nodeCurr.name, nodeNum, nodePar.name );
+% get the node the label
+nodeCurr = nodeAt( node, label );
+if strcmpi( nodeCurr.name, 'rootNode' )
+    return
 end
+
+nodePar  = nodeParent( node, nodeCurr.num );
+if verbose == true
+    fprintf( '%s is @ %d\n', nodeCurr.name, nodeCurr.num );
+end
+
+sVec(nodeCurr.num) = true;
 
 while strcmpi( nodePar.name, 'rootNode' ) == 0
 
-    [nodeNum, nodeCurr, nodePar] = nodeAt( node, nodePar.name );
-    sVec(nodeNum) = true;
-    if verbose == true
-        fprintf( '%s is @ %d, Parent = %s\n', nodeCurr.name, nodeNum, nodePar.name );
-    end
+    nodeCurr = nodeAt( node, nodePar.name );
+    nodePar  = nodeParent( node, nodeCurr.num );
+    sVec(nodeCurr.num) = true;
 end
 
 

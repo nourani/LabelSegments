@@ -1,17 +1,23 @@
 %% Using the UCM segmentation to manually label the segments
 
-addpath(fullfile(pwd,'lib'));
+if ~isdeployed
+    addpath('lib/')
+end
 
 clear all;
 clc;
 
 % User choices
 % /Volumes/data/Hierarchical
-imgDir  = 'data/images';
-ucmDir  = 'data/ucm';
-outDir  = 'data/segments';
-cpcFile = 'data/keypointdata.csv';
-useCPCLabels = true;
+imgDir  = './data/images';
+ucmDir  = './data/ucm';
+outDir  = './data/segments';
+cpcFile = './keypointdata.csv';
+useCPCLabels = false;
+
+if ~exist( outDir, 'dir' ) && ~mkdir( outDir )
+    warning( 'label_segments:create_dir', 'Failed to create output dir' );
+end
 
 %%
 % Get image names
@@ -45,16 +51,16 @@ end
 
 %%
 imgInd = 1;
-
+%rng( 'shuffle' )
 while imgInd >= 1 && imgInd < size(dirCont,1)
-    imgInd = randi(size(dirCont,1), 1);
+    %imgInd = randi(size(dirCont,1), 1);
     
     fprintf( 'Loading image # %d\n', imgInd );
     
     imgName = dirCont(imgInd).name(1:end-4);
     imgFile = [imgDir, '/', imgName, '.png'];
     ucmFile = [ucmDir, '/', imgName, '.mat'];
-    outFile = [outDir, '/', imgName, '_seg.mat'];
+    outFile = [outDir, '/', imgName, '_seeds.mat'];
     
     %% Load image and ucm
     im = double(imread( imgFile ))/255;
@@ -99,12 +105,14 @@ while imgInd >= 1 && imgInd < size(dirCont,1)
                     seeds(ceil(y*sy), ceil(x*sx)) = node.num;
             end
         end
+    elseif exist( outFile, 'file' )
+        load( outFile );
     end
     
     % run interactive segmentation gui
     % return updated seeds and object names
     % also return last button clicked either 'prev' or 'next'
-    [seeds_ret obj_names_ret seg action] = interactive_segmentation( obj_names, ...
+    [seeds, ~, seg, action] = interactive_segmentation( obj_names, ...
         im, ucm2, seeds, imgName);
     
     % discard changes and exit
@@ -115,7 +123,7 @@ while imgInd >= 1 && imgInd < size(dirCont,1)
         if exist( outFile, 'file' )
             uisave('seeds_ret', outFile);
         else
-            save( outFile, 'seeds_ret' );
+            save( outFile, 'seeds' );
         end
         outFile = [outDir, '/', imgName, '_seg.mat'];
         if exist( outFile, 'file' )
@@ -140,6 +148,9 @@ end
 
 fprintf( 'Labeling Ended\n' )
 
+if isdeployed
+    exit
+end
 
 %% Cool images
 % 429

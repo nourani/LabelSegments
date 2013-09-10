@@ -32,15 +32,10 @@ figure(fh); clf;
 figure(fh_seg); clf;
 figure(fh_ui); clf;
 
-% compute initial segmentation
-[boundary labels] = compute_uvt(ucm, seeds);
+labels = [];
+boundary = [];
 
-% convert image to double and histogram normalize
-% if ~isa(class(im), 'double')
-%     im = double(im);
-% end
-%im = hist_equalize(im);
-
+ratio = size(im,1) / size(ucm,1);
 % store image segmentation data
 data.image.im        = im;
 data.image.ucm       = ucm;
@@ -48,6 +43,13 @@ data.image.seeds     = seeds;
 data.image.labels    = labels;
 data.image.boundary  = boundary;
 data.image.obj_names = obj_names;
+data.image.ratio     = ratio;
+
+% compute initial segmentation
+[boundary labels] = compute_uvt(ucm, seeds);
+data.image.labels    = labels;
+data.image.boundary  = boundary;
+
 
 % store backup of image data
 data.image_store = data.image;
@@ -293,7 +295,7 @@ waitfor(data.ui.file_curr,'String','Exiting');
 % return seeds, object names, and last action (prev or next)
 seeds = data.image.seeds;
 obj_names = data.image.obj_names;
-seg = resize_labels(data.image.labels);
+seg = data.image.labels;%seg = resize_labels(data.image.labels);
 action = data.state.final_action;
 cmap = data.state.cmap;
 seeds_ucm_img = seeds_ucm_overlay_inv(ucm, seeds);
@@ -304,21 +306,13 @@ bndry_img = boundary_overlay(im, data.image.labels);
 
 %% compute constrained segmentation
     function [boundary labels] = compute_uvt(ucm, seeds)
-        % determine relative ucm/seeds scale
-        if (size(ucm,1) >= 4. * size(seeds,1))
-            step = 4;
-        else
-            step = 2;
-        end
-        % double seeds size
-        seeds_lg = zeros(size(ucm));
-        seeds_lg(2:step:end,2:step:end) = seeds;
-        % compute segmentation
-        [boundary labels] = uvt(ucm, seeds_lg);
-        % resize labels
-        if (size(ucm,1) >= 4. * size(seeds,1))
-            labels = labels(2:2:end,2:2:end);
-        end
+        % resize seeds
+        seeds_n = imresize(seeds, [size(ucm,1) size(ucm,2)], 'nearest');
+        % compute segmentation 
+        [boundary labels] = uvt(ucm, seeds_n);
+        % resize labels + boundary
+        labels   = imresize(labels, [size(seeds,1) size(seeds,2)], 'nearest');
+        boundary = imresize(boundary, [size(seeds,1) size(seeds,2)], 'nearest');
     end
 
 %% resize segmentation labels to original image size
@@ -498,14 +492,15 @@ bndry_img = boundary_overlay(im, data.image.labels);
 %% create seeds-ucm overlay
     function img = seeds_ucm_overlay(ucm, seeds, img)
         % if ucm is quadruple size, scale it down
-        if (size(ucm,1) >= 4. * size(seeds,1))
-            ucm = ucm(1:2:end,1:2:end);
-        end
-        % resize ucm to original image size
-        xs = 3:2:size(ucm,1);
-        ys = 3:2:size(ucm,2);
-        ucm = ...
-            max(max(ucm(xs,ys),ucm(xs-1,ys)),max(ucm(xs,ys-1),ucm(xs-1,ys-1)));
+%         if (size(ucm,1) >= 4. * size(seeds,1))
+%             ucm = ucm(1:2:end,1:2:end);
+%         end
+%         % resize ucm to original image size
+%         xs = 3:2:size(ucm,1);
+%         ys = 3:2:size(ucm,2);
+%         ucm = ...
+%             max(max(ucm(xs,ys),ucm(xs-1,ys)),max(ucm(xs,ys-1),ucm(xs-1,ys-1)));
+        ucm = imresize(ucm, [size(img,1), size(img,2)], 'nearest');
         % get colormap
         cmap = data.state.cmap; %cmap_labels(seeds);
         % assemble ucm + seeds overlay
@@ -522,16 +517,17 @@ bndry_img = boundary_overlay(im, data.image.labels);
 
 %% create seeds-ucm overlay (inverted)
     function img = seeds_ucm_overlay_inv(ucm, seeds)
-        % if ucm is quadruple size, scale it down
-        if (size(ucm,1) >= 4.*size(seeds,1))
-            ucm = ucm(1:2:end,1:2:end);
-        end
-        % resize ucm to original image size
-        xs = 3:2:size(ucm,1);
-        ys = 3:2:size(ucm,2);
-        ucm = ...
-            max(max(ucm(xs,ys),ucm(xs-1,ys)),max(ucm(xs,ys-1),ucm(xs-1,ys-1)));
-        ucm = 1 - ucm;
+%         % if ucm is quadruple size, scale it down
+%         if (size(ucm,1) >= 4.*size(seeds,1))
+%             ucm = ucm(1:2:end,1:2:end);
+%         end
+%         % resize ucm to original image size
+%         xs = 3:2:size(ucm,1);
+%         ys = 3:2:size(ucm,2);
+%         ucm = ...
+%             max(max(ucm(xs,ys),ucm(xs-1,ys)),max(ucm(xs,ys-1),ucm(xs-1,ys-1)));
+%         ucm = 1 - ucm;
+        ucm = imresize(ucm, [size(seeds,1), size(seeds,2)], 'nearest');
         % get colormap
         cmap = data.state.cmap; %cmap_labels(seeds);
         % assemble ucm + seeds overlay
@@ -549,7 +545,8 @@ bndry_img = boundary_overlay(im, data.image.labels);
 %% create boundary-image overlay
     function im = boundary_overlay(im, labels)
         % resize labels to original image size
-        labels_sm = resize_labels(labels);
+        %labels_sm = resize_labels(labels);
+        labels_sm = labels;
         % compute boundary from labels
         boundary = logical(boundary_from_labels(labels_sm));
         % create image + boundary overlay
@@ -776,7 +773,7 @@ bndry_img = boundary_overlay(im, data.image.labels);
     function ui_obj_select(~, ~)
         % select a pixel
         disp_ui_status(data,'Selected a marked object in the image');
-        [sx sy] = size(data.image.seeds);
+        [sx sy] = size(data.image.im);
         [x y] = ginput_range([sx sy]);
         labels_sm = resize_labels(data.image.labels);
         id = labels_sm(x,y);
@@ -829,10 +826,13 @@ bndry_img = boundary_overlay(im, data.image.labels);
         % get current mode (draw or erase)
         [mode mode_str] = get_ui_mode(data);
         % select points and update display
-        [sx sy] = size(data.image.seeds);
+        [sx sy] = size(data.image.im);
         while (true)
             disp_ui_status(data, ['Click points to ' mode_str '; Right click to stop']);
             [x y button] = ginput_range([sx sy]);
+            %x = round(x / data.image.ratio);
+            %y = round(y / data.image.ratio);
+            
             % left click 
             if (button == 1)
                 if (mode)
@@ -864,10 +864,13 @@ bndry_img = boundary_overlay(im, data.image.labels);
         % get current mode (draw or erase)
         [mode mode_str] = get_ui_mode(data);
         % select points and update display
-        [sx sy] = size(data.image.seeds);
+        [sx sy] = size(data.image.im);
         while (true)
             disp_ui_status(data, ['Click points to ' mode_str '; Right click to stop']);
             [x y button] = ginput_range([sx sy]);
+            %x = round(x / data.image.ratio);
+            %y = round(y / data.image.ratio);
+            
             if (button == 1)
                 x_min = max(x-bsz,1); x_max = min(x+bsz,sx);
                 y_min = max(y-bsz,1); y_max = min(y+bsz,sy);

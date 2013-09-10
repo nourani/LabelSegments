@@ -12,7 +12,7 @@ clc;
 imgDir  = './data/images';
 ucmDir  = './data/ucm';
 outDir  = './data/segments';
-cpcFile = './keypointdata.csv';
+cpcFile = './data/keypointdata.csv';
 useCPCLabels = false;
 
 if ~exist( outDir, 'dir' ) && ~mkdir( outDir )
@@ -51,9 +51,10 @@ end
 
 %%
 imgInd = 1;
-%rng( 'shuffle' )
+rng( 'shuffle' )
 while imgInd >= 1 && imgInd < size(dirCont,1)
     %imgInd = randi(size(dirCont,1), 1);
+    
     
     fprintf( 'Loading image # %d\n', imgInd );
     
@@ -112,7 +113,7 @@ while imgInd >= 1 && imgInd < size(dirCont,1)
     % run interactive segmentation gui
     % return updated seeds and object names
     % also return last button clicked either 'prev' or 'next'
-    [seeds, ~, seg, action] = interactive_segmentation( obj_names, ...
+    [seeds, ~, seg, action, ~, ~, bdry] = interactive_segmentation( obj_names, ...
         im, ucm2, seeds, imgName);
     
     % discard changes and exit
@@ -131,6 +132,7 @@ while imgInd >= 1 && imgInd < size(dirCont,1)
         else
             save( outFile, 'seg' );
         end
+        imwrite( bdry, [outDir, '/', imgName, '.png'], 'png' )
         fprintf( 'Saving labels for image # %d\n', imgInd );
     else
         warning( 'LabelSegments:Saving','File save skipped!' );
